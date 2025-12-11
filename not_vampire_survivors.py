@@ -24,16 +24,24 @@ class Player(pygame.sprite.Sprite):
             self.rect.x += 3
 
 player = Player()
-all_sprites = pygame.sprite.Group(player)
+all_sprites = pygame.sprite.Group(player)\
+
+camera_offset = pygame.Vector2()
 
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
+    all_sprites.update()
+
+    camera_offset.x = player.rect.centerx - screen.get_width() // 2
+    camera_offset.y = player.rect.centery - screen.get_height() // 2
 
     screen.fill((0, 0, 0)) # Fill the screen with black
-    all_sprites.update()
-    all_sprites.draw(screen) 
+
+    for sprite in all_sprites:
+        screen.blit(sprite.image, sprite.rect.topleft - camera_offset)
+    
     pygame.display.flip() # Update the display
     clock.tick(60) # Limit to 60 frames per second
