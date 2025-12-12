@@ -65,8 +65,8 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.y += dy * self.speed
 
 
-enemy_spawn_timer = 0
-enemy_spawn_delay = 1000
+enemy_spawn_delay = 1000  # milliseconds
+last_enemy_spawn = pygame.time.get_ticks()  # tracks the last spawn time
 enemies = pygame.sprite.Group()
 
 # -------------------------
@@ -131,11 +131,10 @@ while running:
 
     all_sprites.update()
 
-    # Enemy timer
-    enemy_spawn_timer += clock.get_time()
-
-    if enemy_spawn_timer >= enemy_spawn_delay:
-        enemy_spawn_timer = 0
+    # ---- Enemy spawn timer (fixed) ----
+    now = pygame.time.get_ticks()
+    if now - last_enemy_spawn >= enemy_spawn_delay:
+        last_enemy_spawn = now
 
         spawn_distance = 400
         sx = player.rect.centerx + random.randint(-spawn_distance, spawn_distance)
