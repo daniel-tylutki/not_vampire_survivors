@@ -36,6 +36,27 @@ player = Player()
 all_sprites = pygame.sprite.Group(player)
 
 # -------------------------
+# ENEMY
+# -------------------------
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = pygame.image.load("enemy_sprite.png").convert_alpha()
+        self.image = pygame.transform.scale(self.image, (30, 30))
+        self.rect = self.image.get_rect(center=(x, y))
+
+    def update(self):
+        # Simple AI: move towards the player
+        if self.rect.centerx < player.rect.centerx:
+            self.rect.x += 1
+        elif self.rect.centerx > player.rect.centerx:
+            self.rect.x -= 1
+        if self.rect.centery < player.rect.centery:
+            self.rect.y += 1
+        elif self.rect.centery > player.rect.centery:
+            self.rect.y -= 1
+
+# -------------------------
 # CAMERA
 # -------------------------
 camera_offset = pygame.Vector2()
