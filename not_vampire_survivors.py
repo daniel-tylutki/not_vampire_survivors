@@ -131,7 +131,7 @@ while running:
 
     all_sprites.update()
 
-    # ---- Enemy spawn timer (fixed) ----
+    # ---- Enemy spawn timer ----
     now = pygame.time.get_ticks()
     if now - last_enemy_spawn >= enemy_spawn_delay:
         last_enemy_spawn = now
