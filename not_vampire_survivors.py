@@ -65,8 +65,9 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.y += dy * self.speed
 
 
+enemy_spawn_timer = 0
+enemy_spawn_delay = 1000
 enemies = pygame.sprite.Group()
-
 
 # -------------------------
 # CAMERA
@@ -95,9 +96,9 @@ def generateChunk(cx, cy):
     generated_chunks[(cx, cy)] = tiles
 
 
-def spawn_enemy_in_chunk(cx, cy):
-    # Prevent enemies spawning in player's own chunk
-    if (cx, cy) == (player_chunk_x, player_chunk_y):
+def spawn_enemy_in_chunk(cx, cy, player_cx, player_cy):
+    # Don't spawn in player's current chunk
+    if (cx, cy) == (player_cx, player_cy):
         return
 
     world_x = cx * CHUNK_SIZE * TILE_SIZE
@@ -130,47 +131,56 @@ while running:
 
     all_sprites.update()
 
-    # ---- Camera follow
+    # Enemy timer
+    enemy_spawn_timer += clock.get_time()
+
+    if enemy_spawn_timer >= enemy_spawn_delay:
+        enemy_spawn_timer = 0
+
+        spawn_distance = 400
+        sx = player.rect.centerx + random.randint(-spawn_distance, spawn_distance)
+        sy = player.rect.centery + random.randint(-spawn_distance, spawn_distance)
+
+        enemy = Enemy(sx, sy)
+        enemies.add(enemy)
+        all_sprites.add(enemy)
+
+    # Camera
     camera_offset.x = player.rect.centerx - screen.get_width() // 2
     camera_offset.y = player.rect.centery - screen.get_height() // 2
 
-    # ---- Player chunk position
+    # Player chunk coordinates
     player_chunk_x = player.rect.centerx // (TILE_SIZE * CHUNK_SIZE)
     player_chunk_y = player.rect.centery // (TILE_SIZE * CHUNK_SIZE)
 
-    # ---- Generate and spawn enemies in new chunks
+    # Generate chunks & spawn enemies inside them
     for cy in range(player_chunk_y - RENDER_DISTANCE, player_chunk_y + RENDER_DISTANCE + 1):
         for cx in range(player_chunk_x - RENDER_DISTANCE, player_chunk_x + RENDER_DISTANCE + 1):
             if (cx, cy) not in generated_chunks:
                 generateChunk(cx, cy)
 
-                # spawn 2–5 enemies when the chunk is created
+                # Spawn 2–5 enemies in NEW chunks
                 for _ in range(random.randint(2, 5)):
-                    spawn_enemy_in_chunk(cx, cy)
+                    spawn_enemy_in_chunk(cx, cy, player_chunk_x, player_chunk_y)
 
+    # Unload far chunks
     unload_far_chunks(player_chunk_x, player_chunk_y)
 
-    # ---- Rendering
+    # Rendering
     screen.fill((0, 0, 0))
 
-    # Draw chunks
+    # Draw tilemap
     for (cx, cy), tiles in generated_chunks.items():
         for tx, ty, color in tiles:
             world_x = (cx * CHUNK_SIZE + tx) * TILE_SIZE
             world_y = (cy * CHUNK_SIZE + ty) * TILE_SIZE
 
             pygame.draw.rect(
-                screen,
-                color,
-                (
-                    world_x - camera_offset.x,
-                    world_y - camera_offset.y,
-                    TILE_SIZE,
-                    TILE_SIZE
-                )
+                screen, color,
+                (world_x - camera_offset.x, world_y - camera_offset.y, TILE_SIZE, TILE_SIZE)
             )
 
-    # Draw all sprites (player + enemies)
+    # Draw sprites
     for sprite in all_sprites:
         screen.blit(sprite.image, sprite.rect.topleft - camera_offset)
 
